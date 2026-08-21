@@ -1,0 +1,11 @@
+Package: nas-flash
+Version: @VERSION@
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: rpi-imager (>= 1.7)
+Maintainer: Romain Groux <romaingroux@users.noreply.github.com>
+Description: Flash Raspberry Pi OS images onto an SD card
+ Command line application to write a Raspberry Pi operating system image onto
+ an SD card, as part of the Raspberry Pi NAS project. The Python runtime is
+ bundled, so no system Python is required. Runs on amd64 Linux.
