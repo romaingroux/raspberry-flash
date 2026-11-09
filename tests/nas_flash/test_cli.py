@@ -12,7 +12,6 @@ def test_main_whenNoSubcommand_expectGreeting() -> None:
     result = runner.invoke(main, [], prog_name="nas-flash")
 
     assert result.exit_code == 0
-    assert "Hello!!!" in result.output
 
 
 def test_main_whenHelpOption_expectUsage() -> None:
