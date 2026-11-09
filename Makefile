@@ -16,7 +16,7 @@ lint: install-deps
 
 .PHONY: format
 format: install-deps  ## Run all code formatters
-	uv run docformatter --in-place -r src/ tests/
+	uv run docformatter --in-place -r src/ tests/ || [ $$? -eq 3 ]
 	uv run black .
 	uv run ruff check . --fix
 

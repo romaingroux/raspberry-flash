@@ -88,7 +88,7 @@ combine-as-imports = true
 force-sort-within-sections = true
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ARG"]
+"tests/**" = ["ARG", "PLR2004"]
 
 
 [tool.vulture]
