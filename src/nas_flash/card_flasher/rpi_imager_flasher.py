@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 import subprocess  # nosec B404
 import tempfile
+import textwrap
 from typing import IO
 
 from nas_flash.card_flasher.icard_flasher import ICardFlasher
@@ -214,7 +215,7 @@ class RpiImagerFlasher(ICardFlasher):
                 exit 0
             """
 
-        file_out.write(script)
+        file_out.write(textwrap.dedent(script).lstrip())
         file_out.flush()
         logger.debug(
             "first run script written to %s (hostname=%s, username=%s, wifi_ssid=%s)",
