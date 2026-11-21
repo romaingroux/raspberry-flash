@@ -235,3 +235,42 @@ class TestRpiImagerFlasher:
         ]
         for line in expected_lines:
             assert line in content
+
+    @mock.patch.object(
+        RpiImagerFlasher,
+        "compute_password_hash",
+        return_value="$6$testsalt$testdigest",
+    )
+    def test_generate_first_run_script_when_no_wifi_ssid_expect_no_wlan(
+        self, _mock_hash, _mock_init
+    ):
+        with tempfile.NamedTemporaryFile(mode="w+t") as file_out:
+            RpiImagerFlasher.generate_first_run_script(
+                file_out,
+                TestRpiImagerFlasher.parameters.hostname,
+                TestRpiImagerFlasher.parameters.username,
+                TestRpiImagerFlasher.parameters.password,
+                None,
+                None,
+            )
+            content = Path(file_out.name).read_text()
+
+        assert "set_wlan" not in content
+        assert "/usr/lib/raspberrypi-sys-mods/imager_custom set_keymap" in content
+        assert "/usr/lib/raspberrypi-sys-mods/imager_custom set_timezone" in content
+
+    def test_generate_first_run_script_when_wifi_ssid_without_password_expect_error(
+        self, _mock_init
+    ):
+        with (
+            tempfile.NamedTemporaryFile(mode="w+t") as file_out,
+            pytest.raises(ValueError, match="WiFi password missing"),
+        ):
+            RpiImagerFlasher.generate_first_run_script(
+                file_out,
+                TestRpiImagerFlasher.parameters.hostname,
+                TestRpiImagerFlasher.parameters.username,
+                TestRpiImagerFlasher.parameters.password,
+                TestRpiImagerFlasher.parameters.wifi_ssid,
+                None,
+            )

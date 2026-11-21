@@ -38,7 +38,11 @@ WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
 @click.option("--image", required=True, help="Path to the image to flash")
 @click.option("--hostname", default=HOSTNAME, help="The Raspberry Pi future hostname")
 @click.option("--username", default=USERNAME, help="The Raspberry Pi future username")
-@click.option("--wifi-ssid", default="", help="The Raspberry Pi future WiFi SSID.")
+@click.option(
+    "--wifi-ssid",
+    default=None,
+    help="The Raspberry Pi future WiFi SSID. Omit it to not configure WiFi.",
+)
 @click.option(
     "--wifi-country", default="", help="The Raspberry Pi future WiFi country."
 )
@@ -56,7 +60,7 @@ def main(  # noqa: PLR0913, PLR0917
     image: str,
     hostname: str,
     username: str,
-    wifi_ssid: str,
+    wifi_ssid: str | None,
     wifi_country: str,
     timezone: str,
     keymap: str,
@@ -72,8 +76,9 @@ def main(  # noqa: PLR0913, PLR0917
     :param hostname: the future hostname.
     :param username: the future username. The corresponding username password is passed
         through the RASPBERRY_FLASH_PASSWORD_USER environment variable.
-    :param wifi_ssid: the future Wifi SSD to connect to. The corresponding password is
-        passed through the RASPBERRY_FLASH_PASSWORD_WIFI environment variable.
+    :param wifi_ssid: the future Wifi SSD to connect to, None to not configure WiFi. The
+        corresponding password is passed through the RASPBERRY_FLASH_PASSWORD_WIFI
+        environment variable, it is only required when a WiFi SSID is given.
     :param wifi_country: the future Wifi country.
     :param timezone: the future timezone.
     :param keymap: the future keyboard key map.
@@ -91,8 +96,10 @@ def main(  # noqa: PLR0913, PLR0917
         logger.critical("user password not provided: %s", USER_PASSWORD_ENV_VAR)
         sys.exit(1)
 
-    wifi_password: str | None = os.environ.get(WIFI_PASSWORD_ENV_VAR)
-    if wifi_password is None or wifi_password == "":  # nosec B105
+    wifi_password: str | None = (
+        os.environ.get(WIFI_PASSWORD_ENV_VAR) if wifi_ssid is not None else None
+    )
+    if wifi_ssid is not None and not wifi_password:
         logger.critical("WiFi password not provided: %s", WIFI_PASSWORD_ENV_VAR)
         sys.exit(1)
 

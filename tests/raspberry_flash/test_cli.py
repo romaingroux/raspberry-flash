@@ -148,8 +148,8 @@ def test_main_whenOnlyRequiredArguments_expectFlasherCalledWithDefaults(
             hostname=HOSTNAME,
             username=USERNAME,
             password=USER_PASSWORD,
-            wifi_ssid="",
-            wifi_password=WIFI_PASSWORD,
+            wifi_ssid=None,
+            wifi_password=None,
             wifi_country="",
             timezone="",
             keymap="",
@@ -211,3 +211,17 @@ def test_main_whenWifiPasswordMissing_expectExitCode1AndNoFlash(
 
     assert result.exit_code == 1
     flasher_class.assert_not_called()
+
+
+@pytest.mark.parametrize("wifi_password", [None, "", WIFI_PASSWORD])
+def test_main_whenNoWifiSsid_expectFlasherCalledWithoutWifi(
+    flasher_class: mock.MagicMock, wifi_password: str | None
+) -> None:
+    """Without a WiFi SSID, the WiFi password is neither required nor used."""
+    result = invoke_main(REQUIRED_ARGUMENTS, wifi_password=wifi_password)
+
+    assert result.exit_code == 0
+    parameters: RpiImagerParameters = flasher_class.call_args.args[1]
+    assert parameters.wifi_ssid is None
+    assert parameters.wifi_password is None
+    flasher_class.return_value.flash.assert_called_once_with()
