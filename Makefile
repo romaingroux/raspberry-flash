@@ -41,6 +41,7 @@ build: install-deps  ## Build a standalone Debian package in dist/
 	ln -s /opt/raspberry-flash/raspberry-flash $(DEB_ROOT)/usr/bin/raspberry-flash
 	gzip -9nc CHANGELOG.md > $(DEB_ROOT)/usr/share/doc/raspberry-flash/changelog.gz
 	sed 's/@VERSION@/$(VERSION)/' packaging/deb/control > $(DEB_ROOT)/DEBIAN/control
+	chmod -R u=rwX,go=rX $(DEB_ROOT)
 	dpkg-deb --root-owner-group --build $(DEB_ROOT) dist/
 
 .PHONY: clean
