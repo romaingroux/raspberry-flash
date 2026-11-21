@@ -20,6 +20,8 @@ KEYMAP: str = "CH"
 LOG_LEVELS: list[str] = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 LOG_LEVEL: str = "INFO"
 
+logger = logging.getLogger(__name__)
+
 USER_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_USER"
 WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
 
@@ -86,12 +88,12 @@ def main(  # noqa: PLR0913, PLR0917
 
     user_password: str | None = os.environ.get(USER_PASSWORD_ENV_VAR)
     if user_password is None or user_password == "":  # nosec B105
-        logging.critical(f"user password not provided: {USER_PASSWORD_ENV_VAR}")
+        logger.critical("user password not provided: %s", USER_PASSWORD_ENV_VAR)
         sys.exit(1)
 
     wifi_password: str | None = os.environ.get(WIFI_PASSWORD_ENV_VAR)
     if wifi_password is None or wifi_password == "":  # nosec B105
-        logging.critical(f"WiFi password not provided: {WIFI_PASSWORD_ENV_VAR}")
+        logger.critical("WiFi password not provided: %s", WIFI_PASSWORD_ENV_VAR)
         sys.exit(1)
 
     card_flasher = RpiImagerFlasher(
