@@ -6,8 +6,8 @@ import tempfile
 import textwrap
 from typing import IO
 
-from nas_flash.card_flasher.icard_flasher import ICardFlasher
-from nas_flash.utils.shell import ShellReturn, run_shell
+from raspberry_flash.card_flasher.icard_flasher import ICardFlasher
+from raspberry_flash.utils.shell import ShellReturn, run_shell
 
 logger = logging.getLogger(__name__)
 

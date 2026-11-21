@@ -22,24 +22,24 @@ format: install-deps  ## Run all code formatters
 
 .PHONY: test
 test: install-deps
-	uv run pytest -s -v --cov=src/nas_flash tests/
+	uv run pytest -s -v --cov=src/raspberry_flash tests/
 
 .PHONY: build
 build: install-deps  ## Build a standalone Debian package in dist/
-	uv sync --reinstall-package nas-flash
+	uv sync --reinstall-package raspberry-flash
 	uv run pyinstaller --onedir --clean --noconfirm \
-		--name nas-flash \
-		--copy-metadata nas-flash \
+		--name raspberry-flash \
+		--copy-metadata raspberry-flash \
 		--distpath build/pyinstaller \
 		--workpath build/pyinstaller-work \
 		--specpath build \
-		src/nas_flash/cli.py
+		src/raspberry_flash/cli.py
 	rm -rf $(DEB_ROOT)
 	mkdir -p $(DEB_ROOT)/DEBIAN $(DEB_ROOT)/opt $(DEB_ROOT)/usr/bin dist \
-		$(DEB_ROOT)/usr/share/doc/nas-flash
-	cp -r build/pyinstaller/nas-flash $(DEB_ROOT)/opt/nas-flash
-	ln -s /opt/nas-flash/nas-flash $(DEB_ROOT)/usr/bin/nas-flash
-	gzip -9nc CHANGELOG.md > $(DEB_ROOT)/usr/share/doc/nas-flash/changelog.gz
+		$(DEB_ROOT)/usr/share/doc/raspberry-flash
+	cp -r build/pyinstaller/raspberry-flash $(DEB_ROOT)/opt/raspberry-flash
+	ln -s /opt/raspberry-flash/raspberry-flash $(DEB_ROOT)/usr/bin/raspberry-flash
+	gzip -9nc CHANGELOG.md > $(DEB_ROOT)/usr/share/doc/raspberry-flash/changelog.gz
 	sed 's/@VERSION@/$(VERSION)/' packaging/deb/control > $(DEB_ROOT)/DEBIAN/control
 	dpkg-deb --root-owner-group --build $(DEB_ROOT) dist/
 

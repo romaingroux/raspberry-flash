@@ -5,11 +5,11 @@ from unittest import mock
 
 import pytest
 
-from nas_flash.card_flasher.rpi_imager_flasher import (
+from raspberry_flash.card_flasher.rpi_imager_flasher import (
     RpiImagerFlasher,
     RpiImagerParameters,
 )
-from nas_flash.utils.shell import ShellReturn
+from raspberry_flash.utils.shell import ShellReturn
 
 
 def run_shell_which_rpi_imager_success(command):
@@ -41,7 +41,7 @@ def run_shell_flash_failure(command):
     raise RuntimeError("unexpected call")
 
 
-@mock.patch("nas_flash.card_flasher.rpi_imager_flasher.ICardFlasher.__init__")
+@mock.patch("raspberry_flash.card_flasher.rpi_imager_flasher.ICardFlasher.__init__")
 class TestRpiImagerFlasher:
 
     device = Path("/dev/my-device")
@@ -59,11 +59,11 @@ class TestRpiImagerFlasher:
     )
 
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.run_shell",
+        "raspberry_flash.card_flasher.rpi_imager_flasher.run_shell",
         side_effect=run_shell_which_rpi_imager_success,
     )
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
+        "raspberry_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
     )
     def test_ctor_when_everything_is_found_expect_to_work(
         self, _mock_path_exists, mock_run_shell, mock_init
@@ -92,7 +92,8 @@ class TestRpiImagerFlasher:
         assert flasher._ssh_pubkey == TestRpiImagerFlasher.parameters.ssh_pubkey
 
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=False
+        "raspberry_flash.card_flasher.rpi_imager_flasher.Path.exists",
+        return_value=False,
     )
     def test_ctor_when_image_not_found_expect_error(self, _mock_path_exists, mock_init):
         with pytest.raises(ValueError, match="image not found"):
@@ -101,11 +102,11 @@ class TestRpiImagerFlasher:
             )
 
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.run_shell",
+        "raspberry_flash.card_flasher.rpi_imager_flasher.run_shell",
         side_effect=run_shell_which_rpi_imager_failure,
     )
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
+        "raspberry_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
     )
     def test_ctor_when_rpi_imager_not_found_expect_error(
         self, _mock_path_exists, _mock_shell_run, _mock_init
@@ -117,11 +118,11 @@ class TestRpiImagerFlasher:
 
     @mock.patch.object(RpiImagerFlasher, "generate_first_run_script")
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.run_shell",
+        "raspberry_flash.card_flasher.rpi_imager_flasher.run_shell",
         side_effect=run_shell_flash_success,
     )
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
+        "raspberry_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
     )
     def test_flash_when_no_error_expect_true(
         self, _mock_path_exists, _mock_shell_run, mock_generate, _mock_init
@@ -137,11 +138,11 @@ class TestRpiImagerFlasher:
 
     @mock.patch.object(RpiImagerFlasher, "generate_first_run_script")
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.run_shell",
+        "raspberry_flash.card_flasher.rpi_imager_flasher.run_shell",
         side_effect=run_shell_flash_failure,
     )
     @mock.patch(
-        "nas_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
+        "raspberry_flash.card_flasher.rpi_imager_flasher.Path.exists", return_value=True
     )
     def test_flash_when_error_expect_false(
         self, _mock_path_exists, _mock_shell_run, mock_generate, _mock_init

@@ -7,7 +7,7 @@ import sys
 
 import click
 
-from nas_flash.card_flasher.rpi_imager_flasher import (
+from raspberry_flash.card_flasher.rpi_imager_flasher import (
     RpiImagerFlasher,
     RpiImagerParameters,
 )
@@ -47,7 +47,7 @@ WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
     default="",
     help="A public key (not a path) to use for SSH connection.",
 )
-@click.version_option(package_name="nas-flash")
+@click.version_option(package_name="raspberry-flash")
 def main(  # noqa: PLR0913, PLR0917
     log_level: str,
     device: str,

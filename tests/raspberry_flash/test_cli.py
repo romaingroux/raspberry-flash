@@ -1,4 +1,4 @@
-"""Tests for the nas-flash command line interface."""
+"""Tests for the raspberry-flash command line interface."""
 
 from collections.abc import Iterator
 from pathlib import Path
@@ -7,8 +7,8 @@ from unittest import mock
 from click.testing import CliRunner, Result
 import pytest
 
-from nas_flash.card_flasher.rpi_imager_flasher import RpiImagerParameters
-from nas_flash.cli import (
+from raspberry_flash.card_flasher.rpi_imager_flasher import RpiImagerParameters
+from raspberry_flash.cli import (
     HOSTNAME,
     USER_PASSWORD_ENV_VAR,
     USERNAME,
@@ -47,7 +47,7 @@ ALL_ARGUMENTS: list[str] = [
 def flasher_class() -> Iterator[mock.MagicMock]:
     """Replace the RpiImagerFlasher class used by the CLI with a mock whose flash()
     succeeds."""
-    with mock.patch("nas_flash.cli.RpiImagerFlasher") as mocked_class:
+    with mock.patch("raspberry_flash.cli.RpiImagerFlasher") as mocked_class:
         mocked_class.return_value.flash.return_value = True
         yield mocked_class
 
@@ -70,7 +70,7 @@ def invoke_main(
     return runner.invoke(
         main,
         arguments,
-        prog_name="nas-flash",
+        prog_name="raspberry-flash",
         env={
             USER_PASSWORD_ENV_VAR: user_password,
             WIFI_PASSWORD_ENV_VAR: wifi_password,
@@ -82,10 +82,10 @@ def test_main_whenHelpOption_expectUsage() -> None:
     """Invoked with --help, the command shows its usage."""
     runner = CliRunner()
 
-    result = runner.invoke(main, ["--help"], prog_name="nas-flash")
+    result = runner.invoke(main, ["--help"], prog_name="raspberry-flash")
 
     assert result.exit_code == 0
-    assert "Usage: nas-flash" in result.output
+    assert "Usage: raspberry-flash" in result.output
 
 
 def test_main_whenAllArguments_expectFlasherCalledWithThem(
@@ -142,7 +142,7 @@ def test_main_whenLogLevelOption_expectLoggingConfiguredWithIt(
     flasher_class: mock.MagicMock,
 ) -> None:
     """The --log-level value is used to configure the logging, upper-cased."""
-    with mock.patch("nas_flash.cli.logging.basicConfig") as basic_config:
+    with mock.patch("raspberry_flash.cli.logging.basicConfig") as basic_config:
         result = invoke_main(["--log-level", "debug"])
 
     assert result.exit_code == 0

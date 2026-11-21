@@ -1,5 +1,5 @@
 [project]
-name = "nas-flash"
+name = "raspberry-flash"
 dynamic = ["version"]
 description = "Flash Raspberry Pi OS images onto an SD card for the Raspberry Pi NAS"
 authors = [
@@ -14,7 +14,7 @@ dependencies = [
 
 
 [project.scripts]
-nas-flash = "nas_flash.cli:main"
+raspberry-flash = "raspberry_flash.cli:main"
 
 
 [build-system]
@@ -42,7 +42,7 @@ pattern = "^(?P<version>.+)$"
 
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/nas_flash"]
+packages = ["src/raspberry_flash"]
 
 
 [tool.black]

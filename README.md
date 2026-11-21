@@ -1,4 +1,4 @@
-# nas-flash
+# raspberry-flash
 
 Command line application to flash Raspberry Pi OS onto an SD card, for the Raspberry Pi
 NAS project.
@@ -27,8 +27,8 @@ Python itself does not need to be installed: `uv` downloads the CPython version 
 | `make install-deps` | Sync the virtual environment from `uv.lock`                      |
 | `make lint`         | Run `docformatter`, `black`, `ruff`, `mypy`, `bandit`, `vulture`  |
 | `make format`       | Apply `docformatter`, `black` and `ruff --fix` in place           |
-| `make test`         | Run the unit tests with coverage of `src/nas_flash`               |
-| `make build`        | Build `dist/nas-flash_<version>_amd64.deb`                       |
+| `make test`         | Run the unit tests with coverage of `src/raspberry_flash`        |
+| `make build`        | Build `dist/raspberry-flash_<version>_amd64.deb`                 |
 
 Every target depends on `install-deps`, so any of them bootstraps the environment.
 
@@ -36,13 +36,14 @@ Every target depends on `install-deps`, so any of them bootstraps the environmen
 
 `make build` freezes the application with PyInstaller, assembles a package tree under
 `build/deb/` from `packaging/deb/control`, and builds the archive with `dpkg-deb`. The
-package also installs `CHANGELOG.md` as `/usr/share/doc/nas-flash/changelog.gz`.
+package also installs `CHANGELOG.md` as
+`/usr/share/doc/raspberry-flash/changelog.gz`.
 
 Install and remove it with:
 
 ```
-sudo apt install ./dist/nas-flash_0.1.0_amd64.deb
-sudo apt remove nas-flash
+sudo apt install ./dist/raspberry-flash_0.1.0_amd64.deb
+sudo apt remove raspberry-flash
 ```
 
 ## Releasing
@@ -58,10 +59,11 @@ To cut a release:
 3. Run `make build`.
 
 `make build` reinstalls the project into the virtual environment first, so the version
-reported by `nas-flash --version` cannot drift from the version in the package name.
+reported by `raspberry-flash --version` cannot drift from the version in the package
+name.
 
 ## Usage
 
 ```
-nas-flash --help
+raspberry-flash --help
 ```
