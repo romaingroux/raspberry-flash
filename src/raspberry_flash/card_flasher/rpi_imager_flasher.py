@@ -99,9 +99,10 @@ class RpiImagerFlasher(ICardFlasher):
         return binary
 
     def flash(self) -> bool:
-        """Placeholder implementation, returns True.
+        """Flashes the SD card with rpi-imager and has the Raspberry Pi configured on
+        its first run.
 
-        :return: True
+        :returns: True if flashing succeeded.
         """
         with tempfile.NamedTemporaryFile(
             mode="wt", delete=True, delete_on_close=True
