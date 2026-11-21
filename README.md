@@ -10,7 +10,13 @@ Python runtime is bundled, so the machine installing it needs no Python.
 
 Runtime:
 
-- `rpi-imager` (>= 1.7) — available from the Ubuntu universe repository
+- `rpi-imager` (>= 1.8.1) — writes the image, its `--first-run-script` option is used to
+  configure the Raspberry Pi. Ubuntu 22.04 ships an older version: install a recent
+  package from <https://github.com/raspberrypi/rpi-imager/releases>.
+- `openssl` — hashes the user password
+- `libc6` (>= 2.17) and `zlib1g` — needed by the bundled Python runtime
+
+The Debian package declares all of them, so `apt` installs or checks them.
 
 Development:
 
