@@ -1,6 +1,7 @@
 """Command line interface to flash Raspberry Pi OS onto an SD card."""
 
 import logging
+import os
 from pathlib import Path
 import sys
 
@@ -13,12 +14,14 @@ from nas_flash.card_flasher.rpi_imager_flasher import (
 
 HOSTNAME: str = "raspberry-pi"
 USERNAME: str = "ansible"
-PASSWORD: str = "ansible"
 WIFI_COUNTRY: str = "CH"
 TIMEZONE: str = "Europe/Zurich"
 KEYMAP: str = "CH"
 LOG_LEVELS: list[str] = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 LOG_LEVEL: str = "INFO"
+
+USER_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_USER"
+WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
 
 
 @click.group(invoke_without_command=True)
@@ -33,15 +36,7 @@ LOG_LEVEL: str = "INFO"
 @click.option("--image", default="", help="Path to the image to flash")
 @click.option("--hostname", default=HOSTNAME, help="The Raspberry Pi future hostname")
 @click.option("--username", default=USERNAME, help="The Raspberry Pi future username")
-@click.option(
-    "--password",
-    default=PASSWORD,
-    help="The Raspberry Pi future username password. The password is hashed, not used as such",
-)
 @click.option("--wifi-ssid", default="", help="The Raspberry Pi future WiFi SSID.")
-@click.option(
-    "--wifi-password", default="", help="The Raspberry Pi future WiFi SSD password."
-)
 @click.option(
     "--wifi-country", default="", help="The Raspberry Pi future WiFi country."
 )
@@ -59,9 +54,7 @@ def main(  # noqa: PLR0913, PLR0917
     image: str,
     hostname: str,
     username: str,
-    password: str,
     wifi_ssid: str,
-    wifi_password: str,
     wifi_country: str,
     timezone: str,
     keymap: str,
@@ -75,11 +68,10 @@ def main(  # noqa: PLR0913, PLR0917
     :param device: the path to the SD card device to flash, e.g /dev/sda1
     :param image: the path to the image to flash on the SD card
     :param hostname: the future hostname.
-    :param username: the future username
-    :param password: the future user <username> password, a hash will be used, not the
-        password.
-    :param wifi_ssid: the future Wifi SSD to connect to.
-    :param wifi_password: the password to connect to the Wifi SSD <wifi_ssid>.
+    :param username: the future username. The corresponding username password is passed
+        through the RASPBERRY_FLASH_PASSWORD_USER environment variable.
+    :param wifi_ssid: the future Wifi SSD to connect to. The corresponding password is
+        passed through the RASPBERRY_FLASH_PASSWORD_WIFI environment variable.
     :param wifi_country: the future Wifi country.
     :param timezone: the future timezone.
     :param keymap: the future keyboard key map.
@@ -91,13 +83,24 @@ def main(  # noqa: PLR0913, PLR0917
         format="%(asctime)s %(levelname)-8s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+
+    user_password: str | None = os.environ.get(USER_PASSWORD_ENV_VAR)
+    if user_password is None or user_password == "":  # nosec B105
+        logging.critical(f"user password not provided: {USER_PASSWORD_ENV_VAR}")
+        sys.exit(1)
+
+    wifi_password: str | None = os.environ.get(WIFI_PASSWORD_ENV_VAR)
+    if wifi_password is None or wifi_password == "":  # nosec B105
+        logging.critical(f"WiFi password not provided: {WIFI_PASSWORD_ENV_VAR}")
+        sys.exit(1)
+
     card_flasher = RpiImagerFlasher(
         Path(device),
         RpiImagerParameters(
             Path(image),
             hostname,
             username,
-            password,
+            user_password,
             wifi_ssid,
             wifi_password,
             wifi_country,
