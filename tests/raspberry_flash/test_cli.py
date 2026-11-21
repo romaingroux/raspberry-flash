@@ -1,6 +1,7 @@
 """Tests for the raspberry-flash command line interface."""
 
 from collections.abc import Iterator
+from importlib.metadata import version
 from pathlib import Path
 from unittest import mock
 
@@ -93,6 +94,16 @@ def test_main_whenHelpOption_expectUsage() -> None:
 
     assert result.exit_code == 0
     assert "Usage: raspberry-flash" in result.output
+
+
+def test_main_whenVersionOption_expectPackageVersion() -> None:
+    """Invoked with --version, the command shows the installed package version."""
+    runner = CliRunner()
+
+    result = runner.invoke(main, ["--version"], prog_name="raspberry-flash")
+
+    assert result.exit_code == 0
+    assert result.output == f"raspberry-flash, version {version('raspberry-flash')}\n"
 
 
 def test_main_whenAllArguments_expectFlasherCalledWithThem(
