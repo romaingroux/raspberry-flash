@@ -67,3 +67,24 @@ name.
 ```
 raspberry-flash --help
 ```
+
+Passwords are never given on the command line, where they would be visible in the
+process list and in the shell history. They are read from environment variables:
+
+| Variable                        | Purpose                                          |
+| ------------------------------- | ------------------------------------------------ |
+| `RASPBERRY_FLASH_PASSWORD_USER` | Password of the future user. Always required.    |
+| `RASPBERRY_FLASH_PASSWORD_WIFI` | WiFi password. Required only with `--wifi-ssid`. |
+
+Writing to the SD card needs root, and `sudo` only passes the environment along when
+asked to:
+
+```
+read -rs RASPBERRY_FLASH_PASSWORD_USER
+read -rs RASPBERRY_FLASH_PASSWORD_WIFI
+export RASPBERRY_FLASH_PASSWORD_USER RASPBERRY_FLASH_PASSWORD_WIFI
+sudo --preserve-env=RASPBERRY_FLASH_PASSWORD_USER,RASPBERRY_FLASH_PASSWORD_WIFI \
+    raspberry-flash --device /dev/sdX --image raspios.img.xz --wifi-ssid my-ssid
+```
+
+`--device` is the whole card (check with `lsblk`), never one of its partitions.
