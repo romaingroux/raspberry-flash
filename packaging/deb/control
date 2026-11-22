@@ -1,9 +1,9 @@
-Package: nas-flash
+Package: raspberry-flash
 Version: @VERSION@
 Section: utils
 Priority: optional
 Architecture: amd64
-Depends: rpi-imager (>= 1.7)
+Depends: libc6 (>= 2.17), zlib1g, openssl, rpi-imager (>= 1.8.1)
 Maintainer: Romain Groux <romaingroux@users.noreply.github.com>
 Description: Flash Raspberry Pi OS images onto an SD card
  Command line application to write a Raspberry Pi operating system image onto

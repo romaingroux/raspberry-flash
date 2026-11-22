@@ -1,11 +1,11 @@
 from unittest import mock
 
-from nas_flash.utils.shell import run_shell
+from raspberry_flash.utils.shell import run_shell
 
 
 class TestUtils:
 
-    @mock.patch("nas_flash.utils.shell.sub.run")
+    @mock.patch("raspberry_flash.utils.shell.sub.run")
     def test_run_shell_when_command_returns_expect_shell_return(self, mock_run):
         return_code_expected = 0
         stdout_expected = b"this is stdout"

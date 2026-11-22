@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 
-from nas_flash.card_flasher.icard_flasher import ICardFlasher
+from raspberry_flash.card_flasher.icard_flasher import ICardFlasher
 
 
 class CardFlasherToy(ICardFlasher):

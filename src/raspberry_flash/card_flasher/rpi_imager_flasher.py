@@ -6,8 +6,8 @@ import tempfile
 import textwrap
 from typing import IO
 
-from nas_flash.card_flasher.icard_flasher import ICardFlasher
-from nas_flash.utils.shell import ShellReturn, run_shell
+from raspberry_flash.card_flasher.icard_flasher import ICardFlasher
+from raspberry_flash.utils.shell import ShellReturn, run_shell
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,10 @@ class RpiImagerParameters:
     :param username: the future username
     :param password: the future user <username> password, the hash will be used, not the
         password.
-    :param wifi_ssid: the future WiFi SSID to connect to.
-    :param wifi_password: the password to connect to the WiFi SSD <wifi_ssid>.
+    :param wifi_ssid: the future WiFi SSID to connect to. None means that WiFi is not
+        configured.
+    :param wifi_password: the password to connect to the WiFi SSD <wifi_ssid>. None when
+        WiFi is not configured.
     :param wifi_country: the future WiFi country.
     :param timezone: the future timezone.
     :param keymap: the future keyboard key map.
@@ -36,8 +38,8 @@ class RpiImagerParameters:
     hostname: str
     username: str
     password: str
-    wifi_ssid: str
-    wifi_password: str
+    wifi_ssid: str | None
+    wifi_password: str | None
     wifi_country: str = "CH"
     timezone: str = "Europe/Zurich"
     keymap: str = "CH"
@@ -68,9 +70,9 @@ class RpiImagerFlasher(ICardFlasher):
         """The username  value that will be set."""
         self._password: str = parameters.password
         """The username password value that will be set."""
-        self._wifi_ssid: str = parameters.wifi_ssid
+        self._wifi_ssid: str | None = parameters.wifi_ssid
         """The WiFi SSID  value that will be set."""
-        self._wifi_password: str = parameters.wifi_password
+        self._wifi_password: str | None = parameters.wifi_password
         """The future password corresponding to the WiFi SSID that will be set."""
         self._wifi_country: str = parameters.wifi_country
         """The future WiFi country value that will be set."""
@@ -97,9 +99,10 @@ class RpiImagerFlasher(ICardFlasher):
         return binary
 
     def flash(self) -> bool:
-        """Placeholder implementation, returns True.
+        """Flashes the SD card with rpi-imager and has the Raspberry Pi configured on
+        its first run.
 
-        :return: True
+        :returns: True if flashing succeeded.
         """
         with tempfile.NamedTemporaryFile(
             mode="wt", delete=True, delete_on_close=True
@@ -142,8 +145,8 @@ class RpiImagerFlasher(ICardFlasher):
         hostname: str,
         username: str,
         password: str,
-        wifi_ssid: str,
-        wifi_password: str,
+        wifi_ssid: str | None,
+        wifi_password: str | None,
         wifi_country: str = "CH",
         timezone: str = "Europe/Zurich",
         keymap: str = "CH",
@@ -157,8 +160,10 @@ class RpiImagerFlasher(ICardFlasher):
         :param username: the future username
         :param password: the future user <username> password, the hash will be used, not
             the password.
-        :param wifi_ssid: the future WiFi SSID to connect to.
-        :param wifi_password: the password to connect to the Wifi SSID <wifi_ssid>.
+        :param wifi_ssid: the future WiFi SSID to connect to. None means that WiFi is
+            not configured.
+        :param wifi_password: the password to connect to the Wifi SSID <wifi_ssid>. None
+            when WiFi is not configured.
         :param wifi_country: the future Wifi country.
         :param timezone: the future timezone.
         :param keymap: the future keyboard key map.
@@ -166,8 +171,18 @@ class RpiImagerFlasher(ICardFlasher):
             connection using a key rather than a username / password. None means no key
             given (default).
         :returns: <file_out>
+        :raises: ValueError if a WiFi SSID is given without a WiFi password.
         """
+        if wifi_ssid is not None and wifi_password is None:
+            raise ValueError(f"WiFi password missing for SSID: {wifi_ssid}")
+
         ssh_option = f"-k {ssh_pubkey}" if ssh_pubkey else ""
+        wifi_command = (
+            "/usr/lib/raspberrypi-sys-mods/imager_custom set_wlan"
+            f" -p '{wifi_ssid}' '{wifi_password}' '{wifi_country}'"
+            if wifi_ssid is not None
+            else ""
+        )
         password_hash = RpiImagerFlasher.compute_password_hash(password)
 
         script: str = rf"""
@@ -204,7 +219,7 @@ class RpiImagerFlasher(ICardFlasher):
                 fi
 
                 if [ -f /usr/lib/raspberrypi-sys-mods/imager_custom ]; then
-                   /usr/lib/raspberrypi-sys-mods/imager_custom set_wlan -p '{wifi_ssid}' '{wifi_password}' '{wifi_country}'
+                   {wifi_command}
                    /usr/lib/raspberrypi-sys-mods/imager_custom set_keymap '{keymap}'
                    /usr/lib/raspberrypi-sys-mods/imager_custom set_timezone '{timezone}'
                 fi

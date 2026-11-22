@@ -7,7 +7,7 @@ import sys
 
 import click
 
-from nas_flash.card_flasher.rpi_imager_flasher import (
+from raspberry_flash.card_flasher.rpi_imager_flasher import (
     RpiImagerFlasher,
     RpiImagerParameters,
 )
@@ -19,6 +19,8 @@ TIMEZONE: str = "Europe/Zurich"
 KEYMAP: str = "CH"
 LOG_LEVELS: list[str] = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 LOG_LEVEL: str = "INFO"
+
+logger = logging.getLogger(__name__)
 
 USER_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_USER"
 WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
@@ -32,11 +34,15 @@ WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
     show_default=True,
     help="Verbosity of the logs written to stderr.",
 )
-@click.option("--device", default="", help="Path to the SD card device to flash")
-@click.option("--image", default="", help="Path to the image to flash")
+@click.option("--device", required=True, help="Path to the SD card device to flash")
+@click.option("--image", required=True, help="Path to the image to flash")
 @click.option("--hostname", default=HOSTNAME, help="The Raspberry Pi future hostname")
 @click.option("--username", default=USERNAME, help="The Raspberry Pi future username")
-@click.option("--wifi-ssid", default="", help="The Raspberry Pi future WiFi SSID.")
+@click.option(
+    "--wifi-ssid",
+    default=None,
+    help="The Raspberry Pi future WiFi SSID. Omit it to not configure WiFi.",
+)
 @click.option(
     "--wifi-country", default="", help="The Raspberry Pi future WiFi country."
 )
@@ -47,21 +53,27 @@ WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
     default="",
     help="A public key (not a path) to use for SSH connection.",
 )
-@click.version_option(package_name="nas-flash")
+@click.version_option(package_name="raspberry-flash")
 def main(  # noqa: PLR0913, PLR0917
     log_level: str,
     device: str,
     image: str,
     hostname: str,
     username: str,
-    wifi_ssid: str,
+    wifi_ssid: str | None,
     wifi_country: str,
     timezone: str,
     keymap: str,
     ssh_pubkey: str,
 ) -> None:
-    """Flash Raspberry Pi OS onto an SD card and sets the Raspberry Pi OS using the
-    following given parameters.
+    """Flash Raspberry Pi OS onto an SD card and configure the Raspberry Pi for its
+    first boot.
+
+    The passwords are read from environment variables, never from the command line:
+    RASPBERRY_FLASH_PASSWORD_USER for the user, always required, and
+    RASPBERRY_FLASH_PASSWORD_WIFI for the WiFi, required only with --wifi-ssid.
+
+    \f
 
     :param log_level: the verbosity of the logs, one of DEBUG, INFO, WARNING, ERROR,
         CRITICAL.
@@ -70,8 +82,9 @@ def main(  # noqa: PLR0913, PLR0917
     :param hostname: the future hostname.
     :param username: the future username. The corresponding username password is passed
         through the RASPBERRY_FLASH_PASSWORD_USER environment variable.
-    :param wifi_ssid: the future Wifi SSD to connect to. The corresponding password is
-        passed through the RASPBERRY_FLASH_PASSWORD_WIFI environment variable.
+    :param wifi_ssid: the future Wifi SSD to connect to, None to not configure WiFi. The
+        corresponding password is passed through the RASPBERRY_FLASH_PASSWORD_WIFI
+        environment variable, it is only required when a WiFi SSID is given.
     :param wifi_country: the future Wifi country.
     :param timezone: the future timezone.
     :param keymap: the future keyboard key map.
@@ -86,12 +99,14 @@ def main(  # noqa: PLR0913, PLR0917
 
     user_password: str | None = os.environ.get(USER_PASSWORD_ENV_VAR)
     if user_password is None or user_password == "":  # nosec B105
-        logging.critical(f"user password not provided: {USER_PASSWORD_ENV_VAR}")
+        logger.critical("user password not provided: %s", USER_PASSWORD_ENV_VAR)
         sys.exit(1)
 
-    wifi_password: str | None = os.environ.get(WIFI_PASSWORD_ENV_VAR)
-    if wifi_password is None or wifi_password == "":  # nosec B105
-        logging.critical(f"WiFi password not provided: {WIFI_PASSWORD_ENV_VAR}")
+    wifi_password: str | None = (
+        os.environ.get(WIFI_PASSWORD_ENV_VAR) if wifi_ssid is not None else None
+    )
+    if wifi_ssid is not None and not wifi_password:
+        logger.critical("WiFi password not provided: %s", WIFI_PASSWORD_ENV_VAR)
         sys.exit(1)
 
     card_flasher = RpiImagerFlasher(

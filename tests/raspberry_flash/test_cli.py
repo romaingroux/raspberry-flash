@@ -1,14 +1,15 @@
-"""Tests for the nas-flash command line interface."""
+"""Tests for the raspberry-flash command line interface."""
 
 from collections.abc import Iterator
+from importlib.metadata import version
 from pathlib import Path
 from unittest import mock
 
 from click.testing import CliRunner, Result
 import pytest
 
-from nas_flash.card_flasher.rpi_imager_flasher import RpiImagerParameters
-from nas_flash.cli import (
+from raspberry_flash.card_flasher.rpi_imager_flasher import RpiImagerParameters
+from raspberry_flash.cli import (
     HOSTNAME,
     USER_PASSWORD_ENV_VAR,
     USERNAME,
@@ -18,6 +19,13 @@ from nas_flash.cli import (
 
 USER_PASSWORD: str = "user-secret"
 WIFI_PASSWORD: str = "wifi-secret"
+
+REQUIRED_ARGUMENTS: list[str] = [
+    "--device",
+    "/dev/sdz",
+    "--image",
+    "/tmp/raspios.img.xz",
+]
 
 ALL_ARGUMENTS: list[str] = [
     "--log-level",
@@ -47,7 +55,7 @@ ALL_ARGUMENTS: list[str] = [
 def flasher_class() -> Iterator[mock.MagicMock]:
     """Replace the RpiImagerFlasher class used by the CLI with a mock whose flash()
     succeeds."""
-    with mock.patch("nas_flash.cli.RpiImagerFlasher") as mocked_class:
+    with mock.patch("raspberry_flash.cli.RpiImagerFlasher") as mocked_class:
         mocked_class.return_value.flash.return_value = True
         yield mocked_class
 
@@ -70,7 +78,7 @@ def invoke_main(
     return runner.invoke(
         main,
         arguments,
-        prog_name="nas-flash",
+        prog_name="raspberry-flash",
         env={
             USER_PASSWORD_ENV_VAR: user_password,
             WIFI_PASSWORD_ENV_VAR: wifi_password,
@@ -82,10 +90,31 @@ def test_main_whenHelpOption_expectUsage() -> None:
     """Invoked with --help, the command shows its usage."""
     runner = CliRunner()
 
-    result = runner.invoke(main, ["--help"], prog_name="nas-flash")
+    result = runner.invoke(main, ["--help"], prog_name="raspberry-flash")
 
     assert result.exit_code == 0
-    assert "Usage: nas-flash" in result.output
+    assert "Usage: raspberry-flash" in result.output
+
+
+def test_main_whenHelpOption_expectPasswordVariablesAndNoDeveloperDoc() -> None:
+    """The help names the password environment variables, not the code parameters."""
+    runner = CliRunner()
+
+    result = runner.invoke(main, ["--help"], prog_name="raspberry-flash")
+
+    assert USER_PASSWORD_ENV_VAR in result.output
+    assert WIFI_PASSWORD_ENV_VAR in result.output
+    assert ":param" not in result.output
+
+
+def test_main_whenVersionOption_expectPackageVersion() -> None:
+    """Invoked with --version, the command shows the installed package version."""
+    runner = CliRunner()
+
+    result = runner.invoke(main, ["--version"], prog_name="raspberry-flash")
+
+    assert result.exit_code == 0
+    assert result.output == f"raspberry-flash, version {version('raspberry-flash')}\n"
 
 
 def test_main_whenAllArguments_expectFlasherCalledWithThem(
@@ -113,22 +142,36 @@ def test_main_whenAllArguments_expectFlasherCalledWithThem(
     flasher_class.return_value.flash.assert_called_once_with()
 
 
-def test_main_whenNoArguments_expectFlasherCalledWithDefaults(
+@pytest.mark.parametrize(
+    "arguments",
+    [[], ["--device", "/dev/sdz"], ["--image", "/tmp/raspios.img.xz"]],
+)
+def test_main_whenDeviceOrImageMissing_expectUsageError(
+    flasher_class: mock.MagicMock, arguments: list[str]
+) -> None:
+    """Without both the device and the image, nothing is flashed."""
+    result = invoke_main(arguments)
+
+    assert result.exit_code == 2
+    flasher_class.assert_not_called()
+
+
+def test_main_whenOnlyRequiredArguments_expectFlasherCalledWithDefaults(
     flasher_class: mock.MagicMock,
 ) -> None:
-    """Without arguments, the flasher receives the default values."""
-    result = invoke_main([])
+    """With the required arguments only, the flasher receives the default values."""
+    result = invoke_main(REQUIRED_ARGUMENTS)
 
     assert result.exit_code == 0
     flasher_class.assert_called_once_with(
-        Path(),
+        Path("/dev/sdz"),
         RpiImagerParameters(
-            image=Path(),
+            image=Path("/tmp/raspios.img.xz"),
             hostname=HOSTNAME,
             username=USERNAME,
             password=USER_PASSWORD,
-            wifi_ssid="",
-            wifi_password=WIFI_PASSWORD,
+            wifi_ssid=None,
+            wifi_password=None,
             wifi_country="",
             timezone="",
             keymap="",
@@ -142,8 +185,8 @@ def test_main_whenLogLevelOption_expectLoggingConfiguredWithIt(
     flasher_class: mock.MagicMock,
 ) -> None:
     """The --log-level value is used to configure the logging, upper-cased."""
-    with mock.patch("nas_flash.cli.logging.basicConfig") as basic_config:
-        result = invoke_main(["--log-level", "debug"])
+    with mock.patch("raspberry_flash.cli.logging.basicConfig") as basic_config:
+        result = invoke_main([*REQUIRED_ARGUMENTS, "--log-level", "debug"])
 
     assert result.exit_code == 0
     basic_config.assert_called_once()
@@ -154,7 +197,7 @@ def test_main_whenInvalidLogLevel_expectUsageError(
     flasher_class: mock.MagicMock,
 ) -> None:
     """An unknown --log-level value is rejected and nothing is flashed."""
-    result = invoke_main(["--log-level", "LOUD"])
+    result = invoke_main([*REQUIRED_ARGUMENTS, "--log-level", "LOUD"])
 
     assert result.exit_code == 2
     flasher_class.assert_not_called()
@@ -190,3 +233,17 @@ def test_main_whenWifiPasswordMissing_expectExitCode1AndNoFlash(
 
     assert result.exit_code == 1
     flasher_class.assert_not_called()
+
+
+@pytest.mark.parametrize("wifi_password", [None, "", WIFI_PASSWORD])
+def test_main_whenNoWifiSsid_expectFlasherCalledWithoutWifi(
+    flasher_class: mock.MagicMock, wifi_password: str | None
+) -> None:
+    """Without a WiFi SSID, the WiFi password is neither required nor used."""
+    result = invoke_main(REQUIRED_ARGUMENTS, wifi_password=wifi_password)
+
+    assert result.exit_code == 0
+    parameters: RpiImagerParameters = flasher_class.call_args.args[1]
+    assert parameters.wifi_ssid is None
+    assert parameters.wifi_password is None
+    flasher_class.return_value.flash.assert_called_once_with()
