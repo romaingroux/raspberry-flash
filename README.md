@@ -3,8 +3,9 @@
 Command line application to flash Raspberry Pi OS onto an SD card, for the Raspberry Pi
 NAS project.
 
-It runs on an **amd64 Linux laptop** and is shipped as a standalone Debian package: the
-Python runtime is bundled, so the machine installing it needs no Python.
+It runs on a **Debian-based Linux machine** and is shipped as a standalone Debian package:
+the Python runtime is bundled, so the machine installing it needs no Python. The package
+is built for the architecture of the machine building it; only amd64 has been tested.
 
 ## Requirements
 
@@ -34,7 +35,7 @@ Python itself does not need to be installed: `uv` downloads the CPython version 
 | `make lint`         | Run `docformatter`, `black`, `ruff`, `mypy`, `bandit`, `vulture`  |
 | `make format`       | Apply `docformatter`, `black` and `ruff --fix` in place           |
 | `make test`         | Run the unit tests with coverage of `src/raspberry_flash`        |
-| `make build`        | Build `dist/raspberry-flash_<version>_amd64.deb`                 |
+| `make build`        | Build `dist/raspberry-flash_<version>_<architecture>.deb`        |
 
 Every target depends on `install-deps`, so any of them bootstraps the environment.
 
@@ -48,7 +49,7 @@ package also installs `CHANGELOG.md` as
 Install and remove it with:
 
 ```
-sudo apt install ./dist/raspberry-flash_0.1.0_amd64.deb
+sudo apt install ./dist/raspberry-flash_*.deb
 sudo apt remove raspberry-flash
 ```
 

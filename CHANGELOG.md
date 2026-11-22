@@ -27,9 +27,9 @@ itself lives in the `VERSION` file at the repository root.
 - `--log-level` to choose the verbosity of the logs written to stderr, `--help` and
   `--version`.
 - Debian packaging: `make build` freezes the application with PyInstaller and builds a
-  standalone `.deb` with `dpkg-deb`. The bundled interpreter means the target needs no
-  system Python, and the package declares its runtime dependencies (`rpi-imager`,
-  `openssl`, `libc6`, `zlib1g`).
+  standalone `.deb` with `dpkg-deb`, for the architecture of the machine building it. The
+  bundled interpreter means the target needs no system Python, and the package declares
+  its runtime dependencies (`rpi-imager`, `openssl`, `libc6`, `zlib1g`).
 - Development environment: uv with a pinned, uv-managed CPython 3.13, hatchling build
   backend and a `Makefile` exposing `install-deps`, `lint`, `format`, `test`, `build` and
   `clean`.
