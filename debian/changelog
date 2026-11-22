@@ -1,4 +1,4 @@
-raspberry-flash (0.1.0) UNRELEASED; urgency=medium
+raspberry-flash (1.0.0) stable; urgency=medium
 
   * Added the raspberry-flash command line tool: it writes a Raspberry Pi OS
     image (--image) onto an SD card (--device) with rpi-imager, and reports
@@ -28,4 +28,4 @@ raspberry-flash (0.1.0) UNRELEASED; urgency=medium
     3.13, hatchling build backend and a Makefile exposing install-deps, lint,
     format, test, build and clean.
 
- -- Romain Groux <romaingroux@users.noreply.github.com>  Sun, 22 Nov 2026 15:52:27 +0100
+ -- Romain Groux <romaingroux@users.noreply.github.com>  Sun, 22 Nov 2026 16:20:25 +0100
