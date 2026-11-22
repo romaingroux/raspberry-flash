@@ -19,6 +19,13 @@ from raspberry_flash.cli import (
 USER_PASSWORD: str = "user-secret"
 WIFI_PASSWORD: str = "wifi-secret"
 
+REQUIRED_ARGUMENTS: list[str] = [
+    "--device",
+    "/dev/sdz",
+    "--image",
+    "/tmp/raspios.img.xz",
+]
+
 ALL_ARGUMENTS: list[str] = [
     "--log-level",
     "DEBUG",
@@ -113,17 +120,31 @@ def test_main_whenAllArguments_expectFlasherCalledWithThem(
     flasher_class.return_value.flash.assert_called_once_with()
 
 
-def test_main_whenNoArguments_expectFlasherCalledWithDefaults(
+@pytest.mark.parametrize(
+    "arguments",
+    [[], ["--device", "/dev/sdz"], ["--image", "/tmp/raspios.img.xz"]],
+)
+def test_main_whenDeviceOrImageMissing_expectUsageError(
+    flasher_class: mock.MagicMock, arguments: list[str]
+) -> None:
+    """Without both the device and the image, nothing is flashed."""
+    result = invoke_main(arguments)
+
+    assert result.exit_code == 2
+    flasher_class.assert_not_called()
+
+
+def test_main_whenOnlyRequiredArguments_expectFlasherCalledWithDefaults(
     flasher_class: mock.MagicMock,
 ) -> None:
-    """Without arguments, the flasher receives the default values."""
-    result = invoke_main([])
+    """With the required arguments only, the flasher receives the default values."""
+    result = invoke_main(REQUIRED_ARGUMENTS)
 
     assert result.exit_code == 0
     flasher_class.assert_called_once_with(
-        Path(),
+        Path("/dev/sdz"),
         RpiImagerParameters(
-            image=Path(),
+            image=Path("/tmp/raspios.img.xz"),
             hostname=HOSTNAME,
             username=USERNAME,
             password=USER_PASSWORD,
@@ -143,7 +164,7 @@ def test_main_whenLogLevelOption_expectLoggingConfiguredWithIt(
 ) -> None:
     """The --log-level value is used to configure the logging, upper-cased."""
     with mock.patch("raspberry_flash.cli.logging.basicConfig") as basic_config:
-        result = invoke_main(["--log-level", "debug"])
+        result = invoke_main([*REQUIRED_ARGUMENTS, "--log-level", "debug"])
 
     assert result.exit_code == 0
     basic_config.assert_called_once()
@@ -154,7 +175,7 @@ def test_main_whenInvalidLogLevel_expectUsageError(
     flasher_class: mock.MagicMock,
 ) -> None:
     """An unknown --log-level value is rejected and nothing is flashed."""
-    result = invoke_main(["--log-level", "LOUD"])
+    result = invoke_main([*REQUIRED_ARGUMENTS, "--log-level", "LOUD"])
 
     assert result.exit_code == 2
     flasher_class.assert_not_called()

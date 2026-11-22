@@ -34,8 +34,8 @@ WIFI_PASSWORD_ENV_VAR: str = "RASPBERRY_FLASH_PASSWORD_WIFI"
     show_default=True,
     help="Verbosity of the logs written to stderr.",
 )
-@click.option("--device", default="", help="Path to the SD card device to flash")
-@click.option("--image", default="", help="Path to the image to flash")
+@click.option("--device", required=True, help="Path to the SD card device to flash")
+@click.option("--image", required=True, help="Path to the image to flash")
 @click.option("--hostname", default=HOSTNAME, help="The Raspberry Pi future hostname")
 @click.option("--username", default=USERNAME, help="The Raspberry Pi future username")
 @click.option("--wifi-ssid", default="", help="The Raspberry Pi future WiFi SSID.")
