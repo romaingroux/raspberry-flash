@@ -37,8 +37,8 @@ dev = [
 
 
 [tool.hatch.version]
-path = "VERSION"
-pattern = "^(?P<version>.+)$"
+path = "debian/changelog"
+pattern = "^raspberry-flash \\((?P<version>[^)]+)\\)"
 
 
 [tool.hatch.build.targets.wheel]

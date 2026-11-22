@@ -1,4 +1,4 @@
-VERSION := $(shell cat VERSION)
+VERSION := $(shell dpkg-parsechangelog --show-field Version)
 ARCH := $(shell dpkg --print-architecture)
 DEB_ROOT := build/deb
 
@@ -40,7 +40,8 @@ build: install-deps  ## Build a standalone Debian package in dist/
 		$(DEB_ROOT)/usr/share/doc/raspberry-flash
 	cp -r build/pyinstaller/raspberry-flash $(DEB_ROOT)/opt/raspberry-flash
 	ln -s /opt/raspberry-flash/raspberry-flash $(DEB_ROOT)/usr/bin/raspberry-flash
-	gzip -9nc CHANGELOG.md > $(DEB_ROOT)/usr/share/doc/raspberry-flash/changelog.gz
+	gzip -9nc debian/changelog \
+		> $(DEB_ROOT)/usr/share/doc/raspberry-flash/changelog.gz
 	cp packaging/deb/copyright $(DEB_ROOT)/usr/share/doc/raspberry-flash/copyright
 	sed 's/@VERSION@/$(VERSION)/; s/@ARCH@/$(ARCH)/' packaging/deb/control \
 		> $(DEB_ROOT)/DEBIAN/control
