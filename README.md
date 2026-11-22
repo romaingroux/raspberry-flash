@@ -94,3 +94,8 @@ sudo --preserve-env=RASPBERRY_FLASH_PASSWORD_USER,RASPBERRY_FLASH_PASSWORD_WIFI 
 ```
 
 `--device` is the whole card (check with `lsblk`), never one of its partitions.
+
+## License
+
+raspberry-flash is free software, distributed under the terms of the GNU General Public
+License, version 3 or later. See `LICENSE`.
