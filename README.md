@@ -23,6 +23,8 @@ Development:
 
 - [uv](https://docs.astral.sh/uv/) — manages both the dependencies and the interpreter
 - `make`, `dpkg-deb`
+- `dpkg-parsechangelog` (package `dpkg-dev`) and `dch` (package `devscripts`) — read and
+  edit the changelog
 
 Python itself does not need to be installed: `uv` downloads the CPython version pinned in
 `.python-version`.
@@ -43,7 +45,7 @@ Every target depends on `install-deps`, so any of them bootstraps the environmen
 
 `make build` freezes the application with PyInstaller, assembles a package tree under
 `build/deb/` from `packaging/deb/control`, and builds the archive with `dpkg-deb`. The
-package also installs `CHANGELOG.md` as
+package also installs `debian/changelog` as
 `/usr/share/doc/raspberry-flash/changelog.gz`.
 
 Install and remove it with:
@@ -55,15 +57,26 @@ sudo apt remove raspberry-flash
 
 ## Releasing
 
-The version lives in the `VERSION` file at the repository root, and nothing else records
-it: `pyproject.toml` declares `dynamic = ["version"]` and hatchling reads `VERSION`, while
-the Makefile reads it for the package name and control file.
+The version and the changes live together in `debian/changelog`, a changelog in the
+Debian format edited with `dch` (package `devscripts`). The version is the one of its
+first entry, and nothing else records it: `pyproject.toml` declares
+`dynamic = ["version"]` and hatchling reads it from there, while the Makefile reads it for
+the package name and control file.
+
+While developing, the first entry is marked `UNRELEASED` and collects the changes:
+
+```
+dch "Describe the change."
+```
 
 To cut a release:
 
-1. Edit `VERSION`.
-2. Move the `CHANGELOG.md` entries from `Unreleased` into a section for the new version.
+1. Set the version of the unreleased entry: `dch --newversion <version> ""`.
+2. Mark it as released: `dch --release --distribution stable ""`.
 3. Run `make build`.
+
+After a release, the next `dch --newversion <version> "..."` opens a new `UNRELEASED`
+entry.
 
 `make build` reinstalls the project into the virtual environment first, so the version
 reported by `raspberry-flash --version` cannot drift from the version in the package
