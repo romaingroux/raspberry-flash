@@ -96,6 +96,17 @@ def test_main_whenHelpOption_expectUsage() -> None:
     assert "Usage: raspberry-flash" in result.output
 
 
+def test_main_whenHelpOption_expectPasswordVariablesAndNoDeveloperDoc() -> None:
+    """The help names the password environment variables, not the code parameters."""
+    runner = CliRunner()
+
+    result = runner.invoke(main, ["--help"], prog_name="raspberry-flash")
+
+    assert USER_PASSWORD_ENV_VAR in result.output
+    assert WIFI_PASSWORD_ENV_VAR in result.output
+    assert ":param" not in result.output
+
+
 def test_main_whenVersionOption_expectPackageVersion() -> None:
     """Invoked with --version, the command shows the installed package version."""
     runner = CliRunner()

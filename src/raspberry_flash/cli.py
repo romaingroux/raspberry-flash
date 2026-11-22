@@ -66,8 +66,14 @@ def main(  # noqa: PLR0913, PLR0917
     keymap: str,
     ssh_pubkey: str,
 ) -> None:
-    """Flash Raspberry Pi OS onto an SD card and sets the Raspberry Pi OS using the
-    following given parameters.
+    """Flash Raspberry Pi OS onto an SD card and configure the Raspberry Pi for its
+    first boot.
+
+    The passwords are read from environment variables, never from the command line:
+    RASPBERRY_FLASH_PASSWORD_USER for the user, always required, and
+    RASPBERRY_FLASH_PASSWORD_WIFI for the WiFi, required only with --wifi-ssid.
+
+    \f
 
     :param log_level: the verbosity of the logs, one of DEBUG, INFO, WARNING, ERROR,
         CRITICAL.
